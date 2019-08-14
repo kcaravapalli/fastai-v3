@@ -100,7 +100,7 @@ class OptimizedRounder(object):
         return self.coef_['x']
 
 optR = OptimizedRounder()
-coefficients = optR.coefficients()
+coefficients = [0.536463 1.584651 2.00183  3.477089]
 #preds,y = learn.get_preds(DatasetType.Test)
 #test_predictions = optR.predict(preds, coefficients)
     
