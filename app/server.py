@@ -54,64 +54,14 @@ loop.close()
 async def homepage(request):
     html_file = path / 'view' / 'index.html'
     return HTMLResponse(html_file.open().read())
-class OptimizedRounder(object):
-    def __init__(self):
-        self.coef_ = 0
 
-    def _kappa_loss(self, coef, X, y):
-        X_p = np.copy(X)
-        for i, pred in enumerate(X_p):
-            if pred < coef[0]:
-                X_p[i] = 0
-            elif pred >= coef[0] and pred < coef[1]:
-                X_p[i] = 1
-            elif pred >= coef[1] and pred < coef[2]:
-                X_p[i] = 2
-            elif pred >= coef[2] and pred < coef[3]:
-                X_p[i] = 3
-            else:
-                X_p[i] = 4
-
-        ll = metrics.cohen_kappa_score(y, X_p, weights='quadratic')
-        return -ll
-
-    def fit(self, X, y):
-        loss_partial = partial(self._kappa_loss, X=X, y=y)
-        initial_coef = [0.5, 1.5, 2.5, 3.5]
-        self.coef_ = sp.optimize.minimize(loss_partial, initial_coef, method='nelder-mead')
-        print(-loss_partial(self.coef_['x']))
-
-    def predict(self, X, coef):
-        X_p = np.copy(X)
-        for i, pred in enumerate(X_p):
-            if pred < coef[0]:
-                X_p[i] = 0
-            elif pred >= coef[0] and pred < coef[1]:
-                X_p[i] = 1
-            elif pred >= coef[1] and pred < coef[2]:
-                X_p[i] = 2
-            elif pred >= coef[2] and pred < coef[3]:
-                X_p[i] = 3
-            else:
-                X_p[i] = 4
-        return X_p
-
-    def coefficients(self):
-        return self.coef_['x']
-
-optR = OptimizedRounder()
-coefficients = [0.536463 1.584651 2.00183  3.477089]
-#preds,y = learn.get_preds(DatasetType.Test)
-#test_predictions = optR.predict(preds, coefficients)
     
 @app.route('/analyze', methods=['POST'])
 async def analyze(request):
     img_data = await request.form()
     img_bytes = await (img_data['file'].read())
     img = open_image(BytesIO(img_bytes))
-    preds,y = learn.get_preds(img)[0]
-    prediction = optR.predict(preds, coefficients)
-    #prediction = learn.predict(img)[0]
+    prediction = learn.predict(img)[0]
     return JSONResponse({'result': str(prediction)})
 
 
